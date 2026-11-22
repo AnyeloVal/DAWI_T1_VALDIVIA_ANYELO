@@ -1,10 +1,8 @@
+
 package com.example.dawi_t1_valdivia_anyelo.repository;
 
-import com.example.dawi_t1_valdivia_anyelo.model.Empleado;
+import com.example.dawi_t1_valdivia_anyelo.entity.Empleado;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface EmpleadoRepository extends JpaRepository<Empleado, Integer> {
-
 }

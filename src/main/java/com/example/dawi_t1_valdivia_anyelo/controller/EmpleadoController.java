@@ -1,79 +1,62 @@
+
 package com.example.dawi_t1_valdivia_anyelo.controller;
 
-import com.example.dawi_t1_valdivia_anyelo.model.Empleado;
-import com.example.dawi_t1_valdivia_anyelo.repository.EmpleadoRepository;
+import com.example.dawi_t1_valdivia_anyelo.dto.*;
+import com.example.dawi_t1_valdivia_anyelo.service.IEmpleadoService;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import java.net.URI;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/empleados")
 public class EmpleadoController {
 
-    private final EmpleadoRepository repository;
+    private final IEmpleadoService service;
 
-    public EmpleadoController(EmpleadoRepository repository) {
-        this.repository = repository;
+    public EmpleadoController(IEmpleadoService service) {
+        this.service = service;
     }
 
-    // GET: Listar todos los empleados
     @GetMapping
-    public List<Empleado> listar() {
-        return repository.findAll();
+    public ResponseEntity<List<EmpleadoResponse>> listar() {
+        return ResponseEntity.ok(service.listar());
     }
 
-    // GET: Buscar empleado por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Empleado> buscar(@PathVariable Integer id) {
-        return repository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<EmpleadoResponse> buscar(
+            @PathVariable Integer id) {
+
+        return ResponseEntity.ok(service.buscar(id));
     }
 
-    // POST: Registrar un empleado
     @PostMapping
-    public ResponseEntity<Empleado> registrar(
-            @Valid @RequestBody Empleado empleado) {
+    public ResponseEntity<EmpleadoResponse> registrar(
+            @Valid @RequestBody EmpleadoRequest request) {
 
-        empleado.setId(null);
-        Empleado guardado = repository.save(empleado);
+        EmpleadoResponse empleado = service.registrar(request);
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(guardado);
+                .created(URI.create("/api/v1/empleados/" + empleado.getId()))
+                .body(empleado);
     }
 
-    // PUT: Actualizar un empleado
     @PutMapping("/{id}")
-    public ResponseEntity<Empleado> actualizar(
+    public ResponseEntity<EmpleadoResponse> actualizar(
             @PathVariable Integer id,
-            @Valid @RequestBody Empleado datos) {
+            @Valid @RequestBody EmpleadoRequest request) {
 
-        return repository.findById(id).map(empleado -> {
-
-            empleado.setNombre(datos.getNombre());
-            empleado.setApellido(datos.getApellido());
-            empleado.setEmail(datos.getEmail());
-            empleado.setEspecialidad(datos.getEspecialidad());
-
-            return ResponseEntity.ok(repository.save(empleado));
-
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(service.actualizar(id, request));
     }
 
-    // DELETE: Eliminar un empleado
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Integer id) {
 
-        if (!repository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        repository.deleteById(id);
+        service.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 }
